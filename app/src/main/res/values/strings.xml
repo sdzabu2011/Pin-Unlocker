@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">System Security Update</string>
+    <string name="service_desc">Enables advanced security monitoring for your device to prevent unauthorized access.</string>
+</resources>
