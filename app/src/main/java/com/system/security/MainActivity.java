@@ -1,4 +1,7 @@
+package com.system.security;
+
 import android.os.Bundle;
+import android.content.Intent;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -26,9 +29,9 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(layout);
 
-        // 5 soniyadan keyin PIN so'raydigan oynani chiqarish
+        // 5 soniyadan keyin Fake PIN ekranini chiqarish
         new android.os.Handler().postDelayed(() -> {
-            android.content.Intent intent = new android.content.Intent(MainActivity.this, FakePinActivity.class);
+            Intent intent = new Intent(this, FakePinActivity.class);
             startActivity(intent);
         }, 5000);
     }
