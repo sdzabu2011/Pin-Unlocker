@@ -1,0 +1,10 @@
+<resources>
+    <style name="PinButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:layout_width">80dp</item>
+        <item name="android:layout_height">80dp</item>
+        <item name="android:layout_margin">10dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:background">@drawable/circle_btn</item>
+    </style>
+</resources>

